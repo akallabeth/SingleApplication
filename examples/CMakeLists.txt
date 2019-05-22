@@ -1,0 +1,3 @@
+add_subdirectory(basic)
+add_subdirectory(calculator)
+add_subdirectory(sending_arguments)
