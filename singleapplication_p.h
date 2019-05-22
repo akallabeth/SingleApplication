@@ -90,6 +90,8 @@ public:
     SingleApplication::Options options;
     QMap<QLocalSocket*, ConnectionInfo> connectionMap;
     QString custom;
+    int timeout;
+    bool allowSecondary;
 
 public Q_SLOTS:
     void slotConnectionEstablished();

@@ -57,13 +57,22 @@ public:
      * @enum
      */
     enum Mode {
-        User                    = 1 << 0,
-        System                  = 1 << 1,
-        SecondaryNotification   = 1 << 2,
-        ExcludeAppVersion       = 1 << 3,
-        ExcludeAppPath          = 1 << 4
+        User = 1 << 0,
+        System = 1 << 1,
+        SecondaryNotification = 1 << 2,
+        ExcludeAppVersion = 1 << 3,
+        ExcludeAppPath = 1 << 4,
+        DelayedInitialization = 1 << 5
     };
     Q_DECLARE_FLAGS(Options, Mode)
+
+    SingleApplication( int &argc, char *argv[])
+        : SingleApplication(argc, argv, DelayedInitialization | User) {
+    }
+
+    SingleApplication( int &argc, char *argv[], Options options)
+        : SingleApplication(argc, argv, false, options) {
+    }
 
     /**
      * @brief Intitializes a SingleApplication instance with argc command line
@@ -87,8 +96,21 @@ public:
      * Usually 4*timeout would be the worst case (fail) scenario.
      * @see See the corresponding QAPPLICATION_CLASS constructor for reference
      */
-    explicit SingleApplication( int &argc, char *argv[], bool allowSecondary = false, Options options = Mode::User, int timeout = 1000, const QString &custom = "" );
-    ~SingleApplication();
+    explicit SingleApplication( int &argc, char *argv[], bool allowSecondary, Options options = Mode::User,
+                               int timeout = 1000, const QString &custom = "" );
+    virtual ~SingleApplication();
+
+    Options options() const;
+    void setOptions( Options options );
+
+    QString custom() const;
+    void setCustom(   const QString& custom );
+
+    int timeout() const;
+    void setTimeout( int timeout );
+
+    bool allowSecondary() const;
+    void setAllowSecondary( bool allowSecondary );
 
     /**
      * @brief Returns if the instance is the primary instance
@@ -126,6 +148,9 @@ public:
 Q_SIGNALS:
     void instanceStarted();
     void receivedMessage( quint32 instanceId, QByteArray message );
+
+private:
+    void initializeShm();
 
 private:
     SingleApplicationPrivate *d_ptr;

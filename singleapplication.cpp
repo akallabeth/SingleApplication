@@ -41,10 +41,23 @@ SingleApplication::SingleApplication( int &argc, char *argv[], bool allowSeconda
 {
     Q_D(SingleApplication);
 
+    d->allowSecondary = allowSecondary;
+    d->timeout = timeout;
     d->custom = custom;
 
     // Store the current mode of the program
     d->options = options;
+
+    if ((d->options & DelayedInitialization) == 0)
+    initializeShm();
+}
+
+void SingleApplication::initializeShm()
+{
+    Q_D(SingleApplication);
+
+    if (!d->blockServerName.isEmpty())
+        return;
 
     // Generating an application ID used for identifying the shared memory
     // block and QLocalServer
@@ -135,32 +148,73 @@ SingleApplication::~SingleApplication()
     delete d;
 }
 
+SingleApplication::Options SingleApplication::options() const
+{
+    return d_ptr->options;
+}
+
+void SingleApplication::setOptions(SingleApplication::Options options)
+{
+    d_ptr->options = options;
+}
+
+QString SingleApplication::custom() const
+{
+    return d_ptr->custom;
+}
+
+void SingleApplication::setCustom(const QString& custom)
+{
+    d_ptr->custom = custom;
+}
+
+int SingleApplication::timeout() const
+{
+    return d_ptr->timeout;
+}
+
+void SingleApplication::setTimeout(int timeout)
+{
+    d_ptr->timeout = timeout;
+}
+
+bool SingleApplication::allowSecondary() const
+{
+    return d_ptr->allowSecondary;
+}
+
+void SingleApplication::setAllowSecondary(bool allowSecondary)
+{
+    d_ptr->allowSecondary = allowSecondary;
+}
+
 bool SingleApplication::isPrimary()
 {
-    Q_D(SingleApplication);
-    return d->server != nullptr;
+    initializeShm();
+    return d_ptr->server != nullptr;
 }
 
 bool SingleApplication::isSecondary()
 {
-    Q_D(SingleApplication);
-    return d->server == nullptr;
+    initializeShm();
+    return d_ptr->server == nullptr;
 }
 
 quint32 SingleApplication::instanceId()
 {
-    Q_D(SingleApplication);
-    return d->instanceNumber;
+    initializeShm();
+    return d_ptr->instanceNumber;
 }
 
 qint64 SingleApplication::primaryPid()
 {
-    Q_D(SingleApplication);
-    return d->primaryPid();
+    initializeShm();
+    return d_ptr->primaryPid();
 }
 
 bool SingleApplication::sendMessage( QByteArray message, int timeout )
 {
+    initializeShm();
     Q_D(SingleApplication);
 
     // Nobody to connect to
